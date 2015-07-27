@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Colors
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+ORANGE='\033[0:33m'
+NC='\033[0m'
+
+function filterFiles {
+	dirPath=$1
+
+	while read linePath; do
+		if [ -f "$linePath" ]; then
+			lowerPathName=$(echo $linePath | tr '[:upper:]' '[:lower:]')
+
+			if [ "$lowerPaths" != "" ]; then
+				
+				filterFlag=0
+				for l in $lowerPaths; do
+					if [ "$l" == "$lowerPathName" ]; then
+						filterFlag=1
+						break
+					fi
+				done
+
+				if [ $filterFlag -eq 0 ]; then
+					if [ -f $linePath ]; then
+						lowerPaths="$lowerPaths $lowerPathName"
+		                                filteredCollection="$filteredCollection $linePath"
+					fi
+				fi
+			else
+				if [ -f $linePath ]; then
+					lowerPaths="$lowerPaths $lowerPathName"
+					filteredCollection="$filteredCollection $linePath"
+				fi
+			fi
+		fi
+	done < $dirPath
+	
+	filteredCollection=$(echo "$filteredCollection" | tr " " "\n"|sort|uniq)
+
+	printf '%s\n' $filteredCollection > $dirPath;
+	
+}
+
+# Check for first param (path)
+if [ "$1" ]; then
+
+	# Get folder location
+	counter=1
+	listfiles=$(echo $1 | tr "\/" "\n")
+	listfileslen=$(echo "$listfiles" | wc -l)	
+
+	for l in $listfiles; do
+	        counter=$((counter+1))
+	        if [ $counter -eq $listfileslen ]; then
+        	        filename=$l
+	        else
+                	locpath="$locpath/$l"
+        	fi
+	done
+	
+	# Check if folder location exist
+	if [ -d "$locpath" ]; then
+	
+		if [ $2 ]; then
+			printf "${PURPLE}Exporting files from $2.${NC}\n"
+			commit=$(git log --since="$2" | grep -E -o '[0-9a-f]{40}')
+		else
+			printf "${PURPLE}Exporting files from the beginning.${NC}\n"
+			commit=$(git log | grep -E -o '[0-9a-f]{40}')
+		fi
+
+		for c in $commit; do
+	
+			ismerge=$(test -z $(git rev-parse --verify $c^2 2> /dev/null) || echo "MERGE")
+
+			if [ "$ismerge" != "MERGE" ]; then
+				ufiles=$(git diff-tree --no-commit-id --name-only -r $c | grep -v 'var\/')
+				totalfiles=$(echo "$ufiles" | wc -l)
+
+				if [ $totalfiles -lt 500 ]; then
+					commitmsg=$(git log --format=%B -n 1 $c)
+					commitmsg=$(echo $commitmsg | tr -d '%')
+		                	printf "${ORANGE}Updated Files:$totalfiles${NC} - ${GREEN}Commit:${NC} ${CYAN}$commitmsg${NC}\n"
+
+					allfiles="$allfiles $(git diff-tree --no-commit-id --name-only -r $c | grep -v 'var\/')"
+				fi
+			fi
+		done
+	
+		# Replace all space with new line
+		paths=$(echo $allfiles | tr " " "\n")
+		
+		# Create log file
+		printf '%s\n' $paths > git-log.txt;
+		
+		# Fileter all files (duplicate, not existing file, sort)
+		filterFiles "$(pwd)/git-log.txt"
+
+		while read filteredLines; do
+			newfileList="$newfileList $filteredLines"
+		done < git-log.txt		
+	
+		allfiles="$newfileList git-log.txt"
+	
+		tar czf $1 $allfiles
+
+		rm git-log.txt
+
+		printf "${GREEN}Export complete.${NC}\n"
+	else
+		printf "${RED}Invalid Path: Path does not exist${NC}\n"
+	fi
+else
+	printf "${RED}Undefined Path: gitExport PATH${NC}\n"
+fi
