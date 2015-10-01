@@ -17,4 +17,5 @@ Go to your GIT repository.
 # Parameters
 1. Export location - `/Users/guest/Documents/patch.tar.gz`
 2. Export from specific date (optional) - `gitExport /Users/guest/Documents/patch.tar.gz 2015-07-01`
-3. Export from specific date and time (optional) - `gitExport /Users/guest/Documents/patch.tar.gz "2015-07-01-09:30:14"`
+  - Export from specific date and time (optional) 
+     `gitExport /Users/guest/Documents/patch.tar.gz "2015-07-01-09:30:14"`
