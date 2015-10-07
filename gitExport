@@ -68,8 +68,13 @@ if [ "$1" ]; then
 	if [ -d "$locpath" ]; then
 	
 		if [ $2 ]; then
-			printf "${PURPLE}Exporting files from $2.${NC}\n"
-			commit=$(git log --since="$2" | grep -E -o '[0-9a-f]{40}')
+			if [ $3 ]; then
+				printf "${PURPLE}Exporting files from $2 to $3.${NC}\n"
+	                        commit=$(git log --since="$2" --until="$3" | grep -E -o '[0-9a-f]{40}')
+			else
+				printf "${PURPLE}Exporting files from $2.${NC}\n"
+				commit=$(git log --since="$2" | grep -E -o '[0-9a-f]{40}')
+			fi
 		else
 			printf "${PURPLE}Exporting files from the beginning.${NC}\n"
 			commit=$(git log | grep -E -o '[0-9a-f]{40}')
