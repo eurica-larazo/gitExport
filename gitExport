@@ -16,26 +16,30 @@ function filterFiles {
 		if [ -f "$linePath" ]; then
 			lowerPathName=$(echo $linePath | tr '[:upper:]' '[:lower:]')
 
-			if [ "$lowerPaths" != "" ]; then
+			fileName=$(basename $lowerPathName)
+                        if [ "$fileName" != ".ds_store" ]; then
+                        
+				if [ "$lowerPaths" != "" ]; then
 				
-				filterFlag=0
-				for l in $lowerPaths; do
-					if [ "$l" == "$lowerPathName" ]; then
-						filterFlag=1
-						break
-					fi
-				done
+					filterFlag=0
+					for l in $lowerPaths; do
+						if [ "$l" == "$lowerPathName" ]; then
+							filterFlag=1
+							break
+						fi
+					done
 
-				if [ $filterFlag -eq 0 ]; then
+					if [ $filterFlag -eq 0 ]; then
+						if [ -f $linePath ]; then
+							lowerPaths="$lowerPaths $lowerPathName"
+		                                	filteredCollection="$filteredCollection $linePath"
+						fi
+					fi
+				else
 					if [ -f $linePath ]; then
 						lowerPaths="$lowerPaths $lowerPathName"
-		                                filteredCollection="$filteredCollection $linePath"
+						filteredCollection="$filteredCollection $linePath"
 					fi
-				fi
-			else
-				if [ -f $linePath ]; then
-					lowerPaths="$lowerPaths $lowerPathName"
-					filteredCollection="$filteredCollection $linePath"
 				fi
 			fi
 		fi
