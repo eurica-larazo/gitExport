@@ -9,8 +9,25 @@ CYAN='\033[0;36m'
 ORANGE='\033[0:33m'
 NC='\033[0m'
 
+# Get params
+for var in "$@"
+do
+        IFS='=' read -a param <<< "$var"
+
+        if [ ${param[0]} == "path" ]; then
+                path=${param[1]}
+        elif [ ${param[0]} == "since" ]; then
+                since==${param[1]}
+        elif [ ${param[0]} == "until" ]; then
+                until==${param[1]}
+        elif [ ${param[0]} == "commit" ]; then
+                commit=${param[1]}
+        fi
+done
+
+
 function filterFiles {
-	dirPath=$1
+	dirPath=$path
 
 	while read linePath; do
 		if [ -f "$linePath" ]; then
@@ -52,11 +69,11 @@ function filterFiles {
 }
 
 # Check for first param (path)
-if [ "$1" ]; then
+if [ "$path" ]; then
 
 	# Get folder location
 	counter=1
-	listfiles=$(echo $1 | tr "\/" "\n")
+	listfiles=$(echo $path | tr "\/" "\n")
 	listfileslen=$(echo "$listfiles" | wc -l)	
 
 	for l in $listfiles; do
@@ -71,13 +88,13 @@ if [ "$1" ]; then
 	# Check if folder location exist
 	if [ -d "$locpath" ]; then
 	
-		if [ $2 ]; then
-			if [ $3 ]; then
-				printf "${PURPLE}Exporting files from $2 to $3.${NC}\n"
-	                        commit=$(git log --since="$2" --until="$3" | grep -E -o '[0-9a-f]{40}')
+		if [ $since ]; then
+			if [ $until ]; then
+				printf "${PURPLE}Exporting files from $since to $until.${NC}\n"
+	                        commit=$(git log --since="$since" --until="$until" | grep -E -o '[0-9a-f]{40}')
 			else
-				printf "${PURPLE}Exporting files from $2.${NC}\n"
-				commit=$(git log --since="$2" | grep -E -o '[0-9a-f]{40}')
+				printf "${PURPLE}Exporting files from .${NC}\n"
+				commit=$(git log --since="$since" | grep -E -o '[0-9a-f]{40}')
 			fi
 		else
 			printf "${PURPLE}Exporting files from the beginning.${NC}\n"
@@ -117,7 +134,7 @@ if [ "$1" ]; then
 	
 		allfiles="$newfileList git-log.txt"
 	
-		tar czf $1 $allfiles
+		tar czf $path $allfiles
 
 		rm git-log.txt
 
