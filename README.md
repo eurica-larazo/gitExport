@@ -8,23 +8,45 @@ Export patch files from your GIT repository.
 3. Change permission: `chmod +x gitExport`
 
 # Parameters
-1. location - `/Users/guest/Documents/patch.tar.gz`
-2. since - `gitExport /Users/guest/Documents/patch.tar.gz 2015-07-01`
-3. until - `gitExport /Users/guest/Documents/patch.tar.gz 2015-07-01 2015-07-30`
+1. path - location for saving patch file.
+2. since - export starting date(date and time).
+3. until - export ending date(date and time).
+4. commit - commit id
+5. ignore - list of file path you wish to ignore
+6. log - flag for including log file to patch.
 
 # How to use
 Go to your GIT repository.
 
-Export all updated files since the repo created.
+Export all updated files since the repo was created.
 
-`gitExport /Users/guest/Documents/patch.tar.gz`
-
-  
-Export all updated files since `date`. You can also specify time `2015-07-01-08:30`.
-
-`gitExport /Users/guest/Documents/patch.tar.gz 2015-07-01`
+`gitExport path=/Users/guest/Documents/patch.tar.gz`
 
 
-Export all updated files since `date` until `date`.
 
-`gitExport /Users/guest/Documents/patch.tar.gz 2015-07-01 2015-07-30`
+Export using `date` parameters.
+
+`gitExport path=/Users/guest/Documents/patch.tar.gz since=2015-07-01`
+
+or
+
+`gitExport path=/Users/guest/Documents/patch.tar.gz since=2015-07-01 until=2015-07-20`
+
+
+
+Export using `commit id`.
+
+`gitExport path=/Users/guest/Documents/patch.tar.gz commit=b70f64209a0ee0844f74f0590070d590c19eb048`
+
+
+
+Ignore files to your patch.
+
+`gitExport path=/Users/guest/Documents/patch.tar.gz commit=b70f64209a0ee0844f74f0590070d590c19eb048 ignore="path/file1 path/file2 path/file3"`
+
+
+
+
+Generate log file.
+
+`gitExport path=/Users/guest/Documents/patch.tar.gz commit=b70f64209a0ee0844f74f0590070d590c19eb048 log`
