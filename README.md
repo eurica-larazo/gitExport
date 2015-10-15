@@ -13,7 +13,7 @@ Export patch files from your GIT repository.
 3. until - export ending date(date and time).
 4. commit - commit id
 5. ignore - list of file path you wish to ignore
-6. log - flag for including log file to patch.
+6. log - flag for including log file to patch. By default log file is not included.
 
 # How to use
 Go to your GIT repository.
