@@ -9,53 +9,76 @@ CYAN='\033[0;36m'
 ORANGE='\033[0:33m'
 NC='\033[0m'
 
+isLog=0
+
 # Get params
 for var in "$@"
 do
-        IFS='=' read -a param <<< "$var"
-
-        if [ ${param[0]} == "path" ]; then
-                path=${param[1]}
-        elif [ ${param[0]} == "since" ]; then
-                since==${param[1]}
-        elif [ ${param[0]} == "until" ]; then
-                until==${param[1]}
-        elif [ ${param[0]} == "commit" ]; then
-                commit=${param[1]}
-        fi
+      	IFS='=' read -a param <<< "$var"
+        par1="$(echo -e "${param[0]}" | tr -d '[[:space:]]')"
+        par2="$(echo -e "${param[1]}" | tr -d '[[:space:]]')"
+	
+        if [ $par1 == "path" ]; then
+                path=$par2
+        elif [ $par1 == "since" ]; then
+                since=$par2
+        elif [ $par1 == "until" ]; then
+                until=$par2
+        elif [ $par1 == "commit" ]; then
+                commit=$par2
+	elif [ $par1 == "ignore" ]; then
+		ignore=${param[1]}
+        elif [ $par1 == "log" ]; then
+       		isLog=1
+	fi
 done
 
-
 function filterFiles {
-	dirPath=$path
+	dirPath=$1
 
 	while read linePath; do
 		if [ -f "$linePath" ]; then
 			lowerPathName=$(echo $linePath | tr '[:upper:]' '[:lower:]')
 
 			fileName=$(basename $lowerPathName)
-                        if [ "$fileName" != ".ds_store" ]; then
-                        
-				if [ "$lowerPaths" != "" ]; then
-				
-					filterFlag=0
-					for l in $lowerPaths; do
-						if [ "$l" == "$lowerPathName" ]; then
-							filterFlag=1
-							break
-						fi
-					done
 
-					if [ $filterFlag -eq 0 ]; then
+			# Check ignore files
+			ignoreFlag=0
+			
+			if [ "$ignore" ]; then
+				ignores=$(echo $ignore | tr " " "\n")
+				for ig in $ignores; do
+					if [ "$fileName" == "$ig" ]; then
+						ignoreFlag=1
+						break
+					fi
+				done
+			fi
+			
+			if [ $ignoreFlag -eq 0 ]; then
+	                        if [ "$fileName" != ".ds_store" ]; then
+                        
+					if [ "$lowerPaths" != "" ]; then
+				
+						filterFlag=0
+						for l in $lowerPaths; do
+							if [ "$l" == "$lowerPathName" ]; then
+								filterFlag=1
+								break
+							fi
+						done
+
+						if [ $filterFlag -eq 0 ]; then
+							if [ -f $linePath ]; then
+								lowerPaths="$lowerPaths $lowerPathName"
+		                        	        	filteredCollection="$filteredCollection $linePath"
+							fi
+						fi
+					else
 						if [ -f $linePath ]; then
 							lowerPaths="$lowerPaths $lowerPathName"
-		                                	filteredCollection="$filteredCollection $linePath"
+							filteredCollection="$filteredCollection $linePath"
 						fi
-					fi
-				else
-					if [ -f $linePath ]; then
-						lowerPaths="$lowerPaths $lowerPathName"
-						filteredCollection="$filteredCollection $linePath"
 					fi
 				fi
 			fi
@@ -87,33 +110,34 @@ if [ "$path" ]; then
 	
 	# Check if folder location exist
 	if [ -d "$locpath" ]; then
-	
-		if [ $since ]; then
-			if [ $until ]; then
-				printf "${PURPLE}Exporting files from $since to $until.${NC}\n"
-	                        commit=$(git log --since="$since" --until="$until" | grep -E -o '[0-9a-f]{40}')
+
+		if [ -z "$commit" ]; then	
+			if [ $since ]; then
+				if [ $until ]; then
+					printf "${PURPLE}Exporting files from $since to $until.${NC}\n"
+	                	        commit=$(git log --since="$since" --until="$until" | grep -E -o '[0-9a-f]{40}')
+				else
+					printf "${PURPLE}Exporting files from $since.${NC}\n"
+					commit=$(git log --since="$since" | grep -E -o '[0-9a-f]{40}')
+				fi
 			else
-				printf "${PURPLE}Exporting files from .${NC}\n"
-				commit=$(git log --since="$since" | grep -E -o '[0-9a-f]{40}')
+				printf "${PURPLE}Exporting files from the beginning.${NC}\n"
+				commit=$(git log | grep -E -o '[0-9a-f]{40}')
 			fi
 		else
-			printf "${PURPLE}Exporting files from the beginning.${NC}\n"
-			commit=$(git log | grep -E -o '[0-9a-f]{40}')
+			printf "${PURPLE}Exporting files from commit ID: $commit.${NC}\n"
 		fi
 
 		for c in $commit; do
 	
 			ismerge=$(test -z $(git rev-parse --verify $c^2 2> /dev/null) || echo "MERGE")
-
 			if [ "$ismerge" != "MERGE" ]; then
 				ufiles=$(git diff-tree --no-commit-id --name-only -r $c | grep -v 'var\/')
 				totalfiles=$(echo "$ufiles" | wc -l)
-
 				if [ $totalfiles -lt 500 ]; then
 					commitmsg=$(git log --format=%B -n 1 $c)
 					commitmsg=$(echo $commitmsg | tr -d '%')
 		                	printf "${ORANGE}Updated Files:$totalfiles${NC} - ${GREEN}Commit:${NC} ${CYAN}$commitmsg${NC}\n"
-
 					allfiles="$allfiles $(git diff-tree --no-commit-id --name-only -r $c | grep -v 'var\/')"
 				fi
 			fi
@@ -127,16 +151,22 @@ if [ "$path" ]; then
 		
 		# Fileter all files (duplicate, not existing file, sort)
 		filterFiles "$(pwd)/git-log.txt"
-
 		while read filteredLines; do
 			newfileList="$newfileList $filteredLines"
 		done < git-log.txt		
-	
-		allfiles="$newfileList git-log.txt"
+		
+		if [ $isLog -eq 1 ]; then
+			allfiles="$newfileList git-log.txt"
+		else
+			allfiles="$newfileList"
+		fi
+		
 	
 		tar czf $path $allfiles
-
-		rm git-log.txt
+		
+		if [ $isLog -eq 1 ]; then
+			rm git-log.txt
+		fi
 
 		printf "${GREEN}Export complete.${NC}\n"
 	else
