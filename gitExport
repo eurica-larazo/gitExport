@@ -164,9 +164,7 @@ if [ "$path" ]; then
 	
 		tar czf $path $allfiles
 		
-		if [ $isLog -eq 1 ]; then
-			rm git-log.txt
-		fi
+		rm git-log.txt
 
 		printf "${GREEN}Export complete.${NC}\n"
 	else
