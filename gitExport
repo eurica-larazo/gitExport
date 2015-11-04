@@ -134,12 +134,12 @@ if [ "$path" ]; then
 			if [ "$ismerge" != "MERGE" ]; then
 				ufiles=$(git diff-tree --no-commit-id --name-only -r $c | grep -v 'var\/')
 				totalfiles=$(echo "$ufiles" | wc -l)
-				if [ $totalfiles -lt 500 ]; then
-					commitmsg=$(git log --format=%B -n 1 $c)
-					commitmsg=$(echo $commitmsg | tr -d '%')
-		                	printf "${ORANGE}Updated Files:$totalfiles${NC} - ${GREEN}Commit:${NC} ${CYAN}$commitmsg${NC}\n"
-					allfiles="$allfiles $(git diff-tree --no-commit-id --name-only -r $c | grep -v 'var\/')"
-				fi
+					
+				commitmsg=$(git log --format=%B -n 1 $c)
+				commitmsg=$(echo $commitmsg | tr -d '%')
+	                	printf "${ORANGE}Updated Files:$totalfiles${NC} - ${GREEN}Commit:${NC} ${CYAN}$commitmsg${NC}\n"
+				allfiles="$allfiles $(git diff-tree --no-commit-id --name-only -r $c | grep -v 'var\/')"
+
 			fi
 		done
 	
