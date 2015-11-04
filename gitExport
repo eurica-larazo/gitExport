@@ -162,7 +162,7 @@ if [ "$path" ]; then
 		fi
 		
 	
-		tar czf $path $allfiles
+		COPYFILE_DISABLE=1 tar czf $path $allfiles
 		
 		rm git-log.txt
 
