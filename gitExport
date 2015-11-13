@@ -26,6 +26,8 @@ do
                 until=$par2
         elif [ $par1 == "commit" ]; then
                 commit=$par2
+	elif [ $par1 == "include" ]; then
+		include=${param[1]}
 	elif [ $par1 == "ignore" ]; then
 		ignore=${param[1]}
         elif [ $par1 == "log" ]; then
@@ -46,7 +48,7 @@ function filterFiles {
 			ignoreFlag=0
 			
 			if [ "$ignore" ]; then
-				ignores=$(echo $ignore | tr " " "\n")
+				ignores=$(echo $ignore | tr "," "\n")
 				for ig in $ignores; do
 					if [ "$fileName" == "$ig" ]; then
 						ignoreFlag=1
@@ -145,6 +147,12 @@ if [ "$path" ]; then
 	
 		# Replace all space with new line
 		paths=$(echo $allfiles | tr " " "\n")
+		
+		 # Add included files
+                if [ "$include" ]; then
+                        include=$(echo $include | tr "," "\n")
+                        paths="$include $paths"
+                fi 
 		
 		# Create log file
 		printf '%s\n' $paths > git-log.txt;
