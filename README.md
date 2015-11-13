@@ -12,8 +12,9 @@ Export patch files from your GIT repository.
 2. since - export starting date(date and time).
 3. until - export ending date(date and time).
 4. commit - commit id
-5. ignore - list of file path you wish to ignore
-6. log - flag for including log file to patch. By default log file is not included.
+5. include - list of file paths you wish to include
+6. ignore - list of file paths you wish to ignore
+7. log - flag for including log file to patch. By default log file is not included.
 
 # How to use
 Go to your GIT repository.
@@ -40,9 +41,15 @@ Export using `commit id`.
 
 
 
+Include files to your patch.
+
+`gitExport path=/Users/guest/Documents/patch.tar.gz commit=b70f64209a0ee0844f74f0590070d590c19eb048 include=path/file1,path/file2,path/file3`
+
+
+
 Ignore files to your patch.
 
-`gitExport path=/Users/guest/Documents/patch.tar.gz commit=b70f64209a0ee0844f74f0590070d590c19eb048 ignore="path/file1 path/file2 path/file3"`
+`gitExport path=/Users/guest/Documents/patch.tar.gz commit=b70f64209a0ee0844f74f0590070d590c19eb048 ignore=path/file1,path/file2,path/file3`
 
 
 
