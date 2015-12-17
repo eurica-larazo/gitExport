@@ -50,10 +50,42 @@ function filterFiles {
 			if [ "$ignore" ]; then
 				ignores=$(echo $ignore | tr "," "\n")
 				for ig in $ignores; do
-					if [ "$fileName" == "$ig" ]; then
-						ignoreFlag=1
-						break
-					fi
+					# For folder ignoring
+                                        if [[ -d $ig ]]; then
+                                                ignoreDir=1
+                                                igPaths=$(echo $ig | tr "/" "\n")
+                                                line=$(echo $linePath | tr "/" "\n")
+
+                                                igpCount=0
+                                                for igp in $igPaths; do
+                                                        lpCount=0
+                                                        for lp in $line; do
+                                                                if [ $lpCount -eq $igpCount ]; then
+                                                                        if [ "$igp" != "$lp" ]; then
+                                                                                ignoreDir=0
+                                                                        fi
+                                                                        break
+                                                                fi
+                                                                lpCount=$((lpCount + 1))
+                                                        done
+
+                                                        if [ $ignoreDir -eq 0 ]; then
+                                                                break
+                                                        fi
+
+                                                        igpCount=$((igpCount + 1))
+                                                done
+
+                                                if [ $ignoreDir -eq 1 ]; then
+                                                        ignoreFlag=1
+                                                        break
+                                                fi
+                                        elif [[ -f $ig ]]; then
+                                                if [ "$ig" == "$linePath" ]; then
+                                                        ignoreFlag=1
+                                                        break
+                                                fi
+                                        fi
 				done
 			fi
 			
